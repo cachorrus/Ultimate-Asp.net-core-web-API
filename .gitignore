@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+#Internal Logs (nlog.config)
+internal_logs/
+/CompanyEmployees/internal_logs/internallog.txt
