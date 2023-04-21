@@ -19,7 +19,12 @@ builder.Services.ConfigureSqlContext(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 
 //Add controllers from CompanyEmployees.Presentation project
-builder.Services.AddControllers()
+//7.2 Changing the Default Configuration of Our Project JSON to XML
+builder.Services.AddControllers(config => {
+    config.RespectBrowserAcceptHeader = true;
+    config.ReturnHttpNotAcceptable = true;
+}).AddXmlDataContractSerializerFormatters()
+    .AddCustomCSVFormatter() //Custom Response only for CompanyDto
     .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
 
 var app = builder.Build();
