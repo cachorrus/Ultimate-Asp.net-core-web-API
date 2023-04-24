@@ -2,7 +2,6 @@
 using Entities.ErrorModel;
 using Entities.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
-using System.Net;
 
 namespace CompanyEmployees.Extensions
 {
@@ -23,6 +22,7 @@ namespace CompanyEmployees.Extensions
                         context.Response.StatusCode = contextFeature.Error switch
                         {
                             NotFoundException => StatusCodes.Status404NotFound,
+                            BadRequestException => StatusCodes.Status400BadRequest,
                             _ => StatusCodes.Status500InternalServerError
                         };
 

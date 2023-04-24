@@ -1,6 +1,7 @@
 using CompanyEmployees.Extensions;
 using Contracts;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using NLog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,13 @@ builder.Services.ConfigureServiceManager();
 
 builder.Services.ConfigureSqlContext(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
+
+//9.2.1 Validation from the ApiController Attribute: 
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    //Disable automatic 400 response
+    options.SuppressModelStateInvalidFilter = true;
+});
 
 //Add controllers from CompanyEmployees.Presentation project
 //7.2 Changing the Default Configuration of Our Project JSON to XML
