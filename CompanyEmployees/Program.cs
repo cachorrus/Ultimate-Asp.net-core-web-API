@@ -1,3 +1,4 @@
+using CompanyEmployees;
 using CompanyEmployees.Extensions;
 using Contracts;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -31,6 +32,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddControllers(config => {
     config.RespectBrowserAcceptHeader = true;
     config.ReturnHttpNotAcceptable = true;
+    config.InputFormatters.Insert(0, JsonPatchInputFormatter.GetJsonPatchInputFormatter());
 }).AddXmlDataContractSerializerFormatters()
     .AddCustomCSVFormatter() //Custom Response only for CompanyDto
     .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
