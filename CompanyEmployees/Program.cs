@@ -1,5 +1,6 @@
 using CompanyEmployees;
 using CompanyEmployees.Extensions;
+using CompanyEmployees.Presentation.ActionFilters;
 using Contracts;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,9 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     //Disable automatic 400 response
     options.SuppressModelStateInvalidFilter = true;
 });
+
+//15. ActionFilters
+builder.Services.AddScoped<ValidationFilterAttribute>();
 
 //Add controllers from CompanyEmployees.Presentation project
 //7.2 Changing the Default Configuration of Our Project JSON to XML
