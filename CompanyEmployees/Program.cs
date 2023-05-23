@@ -5,6 +5,8 @@ using Contracts;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
+using Service.DataShaping;
+using Shared.DataTransferObjects;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,9 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 //15. ActionFilters
 builder.Services.AddScoped<ValidationFilterAttribute>();
+
+//20. Data Shaping
+builder.Services.AddScoped<IDataShaper<EmployeeDto>, DataShaper<EmployeeDto>>();
 
 //Add controllers from CompanyEmployees.Presentation project
 //7.2 Changing the Default Configuration of Our Project JSON to XML
