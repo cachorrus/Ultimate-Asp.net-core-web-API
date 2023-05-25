@@ -6,6 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Repository;
 using Service;
 using Service.Contracts;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using System;
+using Microsoft.Extensions.Options;
+using CompanyEmployees.Presentation.Controllers;
 
 namespace CompanyEmployees.Extensions
 {
@@ -73,5 +77,33 @@ namespace CompanyEmployees.Extensions
                 }
             });
         }
+
+        public static void ConfigureVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning(opt =>
+            {
+                opt.ReportApiVersions = true;
+                opt.AssumeDefaultVersionWhenUnspecified = true;
+                opt.DefaultApiVersion = new ApiVersion(1, 0);
+                //With this you do not need to add the version in the URL
+                //[Route("api/{v:apiversion}/companies")] => [Route("api/companies")]
+                //opt.ApiVersionReader = new HeaderApiVersionReader("api-version");
+                //opt.ApiVersionReader = new QueryStringApiVersionReader("api-version");
+
+                //Combinar las formas de especificar las versiones de la API
+                opt.ApiVersionReader = ApiVersionReader.Combine(
+                    new QueryStringApiVersionReader("api-version"),
+                    new HeaderApiVersionReader("api-version")
+                    );
+
+                //24.2.5 Using Conventions: in this way it is not necessary to add
+                //ApiVersion("1.0")] in the controllers
+                opt.Conventions.Controller<CompaniesController>()
+                    .HasApiVersion(new ApiVersion(1, 0));
+                opt.Conventions.Controller<CompaniesV2Controller>()
+                    .HasDeprecatedApiVersion(new ApiVersion(2, 0));
+            });
+        }
+
     }
 }
