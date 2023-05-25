@@ -1,6 +1,7 @@
 using CompanyEmployees;
 using CompanyEmployees.Extensions;
 using CompanyEmployees.Presentation.ActionFilters;
+using CompanyEmployees.Utility;
 using Contracts;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
@@ -32,9 +33,14 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 //15. ActionFilters
 builder.Services.AddScoped<ValidationFilterAttribute>();
+//21. Supporting HATEOAS
+builder.Services.AddScoped<ValidateMediaTypeAttribute>();
 
 //20. Data Shaping
 builder.Services.AddScoped<IDataShaper<EmployeeDto>, DataShaper<EmployeeDto>>();
+
+//21. Supporting HATEOAS
+builder.Services.AddScoped<IEmployeeLinks, EmployeeLinks>();
 
 //Add controllers from CompanyEmployees.Presentation project
 //7.2 Changing the Default Configuration of Our Project JSON to XML
@@ -45,6 +51,9 @@ builder.Services.AddControllers(config => {
 }).AddXmlDataContractSerializerFormatters()
     .AddCustomCSVFormatter() //Custom Response only for CompanyDto
     .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
+
+//21. Supporting HATEOAS
+builder.Services.AddCustomMediaTypes();
 
 var app = builder.Build();
 
