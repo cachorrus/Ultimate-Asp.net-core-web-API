@@ -1,6 +1,8 @@
-﻿using CompanyEmployees.Presentation.ModelBinders;
+﻿using Application.Commands;
+using Application.Notifications;
+using Application.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Service.Contracts;
 using Shared.DataTransferObjects;
 
 namespace CompanyEmployees.Presentation.Controllers
@@ -9,74 +11,60 @@ namespace CompanyEmployees.Presentation.Controllers
     [ApiController]
     public class CompaniesController : ControllerBase
     {
-        private readonly IServiceManager _service;
-        public CompaniesController(IServiceManager service) => _service = service;
-        
+        private readonly ISender _sender;
+        private readonly IPublisher _publisher;
+
+        public CompaniesController(ISender sender, IPublisher publisher)
+        {
+            _sender = sender;
+            _publisher = publisher;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetCompanies()
         {
-            var companies = await _service.CompanyService.GetAllCompaniesAsync(trackChanges: false);
-                
+            var companies = await _sender.Send(new GetCompaniesQuery(TrackChanges: false));
+            
             return Ok(companies);
         }
 
         [HttpGet("{id:guid}", Name = "CompanyById")]
         public async Task<IActionResult> GetCompany(Guid id)
         {
-            var company = await _service.CompanyService.GetCompanyAsync(id, trackChanges: false);
+            var company = await _sender.Send(new GetCompanyQuery(id, TrackChanges: false));
             
             return Ok(company);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCompany([FromBody] CompanyForCreationDto company)
+        public async Task<IActionResult> CreateCompany([FromBody] CompanyForCreationDto companyForCreationDto)
         {
-            if (company is null)
-                return BadRequest("CompanyForCreationDto object is null");
+            //Validacion realziada en CreateCompanyCommandValidator pero regresara el estatus 422
+            //se recomienda que cuando el objeto es null se retorne el estatus 400 como a continuacion
+            //if (companyForCreationDto is null)
+            //    return BadRequest("CompanyForCreationDto object is null");
 
-            if (!ModelState.IsValid)
-                return UnprocessableEntity(ModelState);
-
-            var createdCompany = await _service.CompanyService.CreateCompanyAsync(company);
+            var company = await _sender.Send(new CreateCompanyCommand(companyForCreationDto));
             
-            return CreatedAtRoute("CompanyById", new { id = createdCompany.Id }, createdCompany);
+            return CreatedAtRoute("CompanyById", new { id = company.Id }, company);
         }
 
-        [HttpGet("collection/({ids})", Name = "CompanyCollection")]
-        public async Task<IActionResult> GetCompanyCollection([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> UpdateCompany(Guid id, CompanyForUpdateDto companyForUpdateDto)
         {
-            var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);
-            
-            return Ok(companies);
-        }
+            if (companyForUpdateDto is null)
+                return BadRequest("CompanyForUpdateDto object is null");
 
-        [HttpPost("collection")]
-        public async Task<IActionResult> CreateCompanyCollection([FromBody] IEnumerable<CompanyForCreationDto> companyCollection)
-        {
-            var result = await _service.CompanyService.CreateCompanyCollectionAsync(companyCollection);
+            await _sender.Send(new UpdateCompanyCommand(id, companyForUpdateDto, TrackChanges: true));
             
-            return CreatedAtRoute("CompanyCollection", new { result.ids },  result.companies);
+            return NoContent();
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteCompany(Guid id)
         {
-            await _service.CompanyService.DeleteCompanyAsync(id, trackChanges: false);
-            
-            return NoContent();
-        }
+            await _publisher.Publish(new CompanyDeletedNotification(id, TrackChanges: false));
 
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateCompany(Guid id, [FromBody] CompanyForUpdateDto company)
-        {
-            if (company is null)
-                return BadRequest("CompanyForUpdateDto object is null");
-
-            if (!ModelState.IsValid)
-                return UnprocessableEntity(ModelState);
-
-            await _service.CompanyService.UpdateCompanyAsync(id, company, trackChanges: true);
-            
             return NoContent();
         }
     }

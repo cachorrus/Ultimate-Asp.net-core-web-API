@@ -1,6 +1,8 @@
-using CompanyEmployees;
+using Application.Behaviors;
 using CompanyEmployees.Extensions;
 using Contracts;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
@@ -15,10 +17,7 @@ builder.Services.ConfigureCors();
 builder.Services.ConfigureIISIntegration();
 builder.Services.ConfigureLoggerService();
 builder.Services.ConfigureRepositoryManager();
-builder.Services.ConfigureServiceManager();
-
 builder.Services.ConfigureSqlContext(builder.Configuration);
-builder.Services.AddAutoMapper(typeof(Program));
 
 //9.2.1 Validation from the ApiController Attribute: 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -27,14 +26,18 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 
+//32 CQRS and MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Application.AssemblyReference).Assembly));
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddValidatorsFromAssembly(typeof(Application.AssemblyReference).Assembly);
+
 //Add controllers from CompanyEmployees.Presentation project
 //7.2 Changing the Default Configuration of Our Project JSON to XML
 builder.Services.AddControllers(config => {
     config.RespectBrowserAcceptHeader = true;
-    config.ReturnHttpNotAcceptable = true;
-    config.InputFormatters.Insert(0, JsonPatchInputFormatter.GetJsonPatchInputFormatter());
+    config.ReturnHttpNotAcceptable = true;    
 }).AddXmlDataContractSerializerFormatters()
-    .AddCustomCSVFormatter() //Custom Response only for CompanyDto
     .AddApplicationPart(typeof(CompanyEmployees.Presentation.AssemblyReference).Assembly);
 
 var app = builder.Build();
