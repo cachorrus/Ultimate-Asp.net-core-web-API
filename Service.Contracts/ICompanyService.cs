@@ -1,10 +1,10 @@
-﻿using Shared.DataTransferObjects;
+﻿using Entities.Responses;
 
 namespace Service.Contracts
 {
     public interface ICompanyService
     {
-        IEnumerable<CompanyDto> GetAllCompanies(bool trackChanges);
-        CompanyDto GetCompany(Guid companyId, bool trackChanges);
+        ApiBaseResponse GetAllCompanies(bool trackChanges);
+        ApiBaseResponse GetCompany(Guid companyId, bool trackChanges);
     }
 }
